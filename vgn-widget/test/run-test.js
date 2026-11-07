@@ -33,7 +33,7 @@ function textsWithColor(node, out = []) {
   return out;
 }
 
-function makeGlobals({ hour, widgetParameter, family, failNetwork }) {
+function makeGlobals({ hour, widgetParameter, family, failNetwork, position }) {
   const requests = [];
   const files = {};
   const now = new Date(Date.UTC(2026, 10, 9, hour - 1, 0, 0)); // Mo 09.11.2026, MEZ = UTC+1
@@ -75,6 +75,14 @@ function makeGlobals({ hour, widgetParameter, family, failNetwork }) {
         return FIXTURE;
       }
     },
+    Location: {
+      setAccuracyToHundredMeters() {},
+      async current() {
+        if (!position) throw new Error("Standortzugriff verweigert");
+        return { latitude: position[0], longitude: position[1] };
+      },
+    },
+    Timer: { schedule: () => ({}) },
     config: { runsInWidget: true, widgetFamily: family },
     args: { widgetParameter },
     Script: { setWidget: (w) => { widgetSet = w; }, complete: () => {} },
@@ -140,6 +148,37 @@ async function runScript(opts) {
   t = texts(env.getWidget());
   console.log("--- small, 07:00 ---\n" + t.join(" | "));
   assert(t.includes("✕ FÄLLT AUS"));
+
+  // 5) Standort: an der Arbeit (Pommernstraße 10) um 07:00 → nach Hause
+  const AT_WORK = [49.4120, 11.0440];
+  const AT_HOME = [49.3235, 11.0076];
+  const ELSEWHERE = [49.4521, 11.0767]; // Nürnberg Innenstadt
+  env = await runScript({ hour: 7, family: "medium", position: AT_WORK });
+  t = texts(env.getWidget());
+  assert(t.includes("Nach Hause"), "an der Arbeit → nach Hause");
+  assert(t.some((s) => s.startsWith("📍")), "Standort-Hinweis");
+  assert(env.requests.find((u) => u.includes("XML_TRIP_REQUEST2")).includes("name_origin=id%3AN%C3%BCrnberg%2C%20Eibach"));
+
+  // 6) Standort: zu Hause um 16:00 → zur Arbeit
+  env = await runScript({ hour: 16, family: "medium", position: AT_HOME });
+  t = texts(env.getWidget());
+  assert(t.includes("Zur Arbeit"), "zu Hause → zur Arbeit");
+
+  // 7) Weder noch → Uhrzeit entscheidet
+  env = await runScript({ hour: 7, family: "medium", position: ELSEWHERE });
+  assert(texts(env.getWidget()).includes("Zur Arbeit"), "unterwegs vormittags → zur Arbeit");
+  env = await runScript({ hour: 16, family: "medium", position: ELSEWHERE });
+  assert(texts(env.getWidget()).includes("Nach Hause"), "unterwegs nachmittags → nach Hause");
+
+  // 8) Kein Standortzugriff → Uhrzeit, kein 📍
+  env = await runScript({ hour: 16, family: "medium" });
+  t = texts(env.getWidget());
+  assert(t.includes("Nach Hause") && !t.some((s) => s.startsWith("📍")), "ohne Standort → Uhrzeit");
+
+  // 9) Parameter hat Vorrang vor Standort
+  env = await runScript({ hour: 7, family: "medium", position: AT_WORK, widgetParameter: "hin" });
+  assert(texts(env.getWidget()).includes("Zur Arbeit"), "Parameter vor Standort");
+  console.log("--- Standort-Tests ok ---");
 
   // 4) Offline ohne Cache → Fehlermeldung
   env = await runScript({ hour: 7, family: "medium", failNetwork: true });

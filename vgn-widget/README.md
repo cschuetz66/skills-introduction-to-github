@@ -2,8 +2,10 @@
 
 Ein Homescreen-Widget für iPhone/iPad, das dir die aktuellen VGN-Verbindungen für deinen Arbeitsweg zeigt:
 
-- **Vormittags** (bis 12 Uhr): Zuhause → Arbeit
-- **Nachmittags** (ab 12 Uhr): Arbeit → Zuhause
+- **Richtung nach Standort:** Bist du an der Arbeit (Pommernstraße 10, Nürnberg), zeigt es die Fahrten nach Hause.
+  Bist du zu Hause (Wildbirnenweg 61, Schwabach), zeigt es die Fahrten zur Arbeit. Ein 📍 vor der Uhrzeit zeigt an,
+  dass der Standort entschieden hat.
+- **Unterwegs oder ohne Standort:** vormittags (bis 12 Uhr) zur Arbeit, nachmittags nach Hause
 - **Echtzeitdaten** aus der Fahrplanauskunft „Bahnland Bayern“, die das gesamte VGN-Gebiet abdeckt
 - **Verspätungen** werden hervorgehoben: ab 2 min **orange**, ab 5 min **rot** (Zeile farbig hinterlegt)
 - **Ausfälle** erscheinen rot mit „✕ FÄLLT AUS“ und der betroffenen Linie
@@ -43,7 +45,10 @@ Fertig! Ein Tipp aufs Widget öffnet die VGN-Verbindungssuche.
 
 | Einstellung        | Standard | Bedeutung |
 |--------------------|----------|-----------|
-| `SWITCH_HOUR`      | `12`     | Ab dieser Stunde wird die Rückfahrt angezeigt |
+| `HOME_PLACE` / `WORK_PLACE` | Wildbirnenweg 61 / Pommernstraße 10 | Adressen (mit Koordinaten) für die Standorterkennung |
+| `PLACE_RADIUS_M`   | `300`    | Umkreis in Metern, in dem du als „dort“ giltst |
+| `USE_LOCATION`     | `true`   | `false` → Richtung nur nach Uhrzeit |
+| `SWITCH_HOUR`      | `12`     | Ohne Standort: ab dieser Stunde wird die Rückfahrt angezeigt |
 | `DELAY_WARN_MIN`   | `2`      | Ab so vielen Minuten Verspätung: orange |
 | `DELAY_ALERT_MIN`  | `5`      | Ab so vielen Minuten Verspätung: rot |
 | `OFFSET_MIN`       | `0`      | Verbindungen erst ab „jetzt + X min“ (z. B. Fußweg zur Haltestelle) |
@@ -53,6 +58,11 @@ Fertig! Ein Tipp aufs Widget öffnet die VGN-Verbindungssuche.
 (immer nach Hause) eintragen. So kannst du z. B. zwei Widgets nebeneinander nutzen.
 
 ## Gut zu wissen
+
+- **Standortfreigabe:** Beim ersten Start fragt Scriptable nach dem Standort. Damit es auch im Widget klappt,
+  unter *Einstellungen → Datenschutz & Sicherheit → Ortungsdienste → Scriptable* „Beim Verwenden der App oder
+  Widgets“ wählen. Ohne Freigabe entscheidet die Uhrzeit. Klappt die Ortung mal nicht, nutzt das Widget eine bis zu
+  30 Minuten alte Position.
 
 - **Aktualisierung:** iOS bestimmt, wie oft Widgets tatsächlich neu geladen werden (typischerweise alle 5–15 Minuten).
   Die Uhrzeit oben rechts im Widget zeigt den Stand der Daten.

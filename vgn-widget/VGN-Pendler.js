@@ -16,7 +16,12 @@
  * Widget-Parameter (optional, lange auf das Widget tippen → „Widget bearbeiten“):
  *   hin    → immer Zuhause → Arbeit
  *   rueck  → immer Arbeit → Zuhause
- *   (leer) → automatisch nach Uhrzeit (siehe SWITCH_HOUR)
+ *   (leer) → automatisch nach Standort, sonst nach Uhrzeit (siehe unten)
+ *
+ * Automatische Richtung:
+ *   - Du bist an der Arbeit (WORK_PLACE)   → Fahrten nach Hause
+ *   - Du bist zu Hause (HOME_PLACE)        → Fahrten zur Arbeit
+ *   - weder noch / Standort unbekannt      → nach Uhrzeit (SWITCH_HOUR)
  */
 
 // ============================ KONFIGURATION ============================
@@ -25,7 +30,15 @@ const CONFIG = {
   HOME: "Schwabach, Wildbirnenweg",
   WORK: "Nürnberg, Eibach",
 
-  // Bis zu dieser Stunde (exklusive) wird Zuhause → Arbeit angezeigt,
+  // Standorte für die automatische Richtungswahl (Adresse + Koordinaten).
+  HOME_PLACE: { name: "Wildbirnenweg 61, Schwabach", lat: 49.323407, lon: 11.007515 },
+  WORK_PLACE: { name: "Pommernstraße 10, Nürnberg", lat: 49.411839, lon: 11.044185 },
+  // Innerhalb dieses Umkreises (Meter) gilt man als „dort“.
+  PLACE_RADIUS_M: 300,
+  // Standort verwenden? (false → nur Uhrzeit)
+  USE_LOCATION: true,
+
+  // Fallback ohne Standort: bis zu dieser Stunde (exklusive) Zuhause → Arbeit,
   // ab dieser Stunde Arbeit → Zuhause.
   SWITCH_HOUR: 12,
 
@@ -102,16 +115,71 @@ function efaErrorText(json) {
 
 // -------------------------- Richtung bestimmen -------------------------
 
-function chooseDirection(now, param) {
+// Entfernung zweier Koordinaten in Metern (Haversine).
+function distanceM(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const rad = (x) => (x * Math.PI) / 180;
+  const dLat = rad(lat2 - lat1);
+  const dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Aktuellen Standort ermitteln (max. 10 s). Klappt das nicht, wird eine
+// höchstens 30 Minuten alte, zuletzt bekannte Position verwendet.
+async function currentPosition(now) {
+  if (!CONFIG.USE_LOCATION || typeof Location === "undefined") return null;
+  try {
+    Location.setAccuracyToHundredMeters();
+    const pos = await Promise.race([
+      Location.current(),
+      new Promise((_, reject) => Timer.schedule(10000, false, () => reject(new Error("Timeout")))),
+    ]);
+    const result = { lat: pos.latitude, lon: pos.longitude, ts: now.toISOString() };
+    writeCache("position", result);
+    return result;
+  } catch (e) {
+    const last = readCache("position");
+    if (last && now - new Date(last.ts) < 30 * 60000) return last;
+    return null;
+  }
+}
+
+// Gibt "work" / "home" zurück, wenn man an einem der Orte ist, sonst null.
+function placeAt(pos) {
+  if (!pos) return null;
+  const dWork = distanceM(pos.lat, pos.lon, CONFIG.WORK_PLACE.lat, CONFIG.WORK_PLACE.lon);
+  const dHome = distanceM(pos.lat, pos.lon, CONFIG.HOME_PLACE.lat, CONFIG.HOME_PLACE.lon);
+  if (dWork <= CONFIG.PLACE_RADIUS_M && dWork <= dHome) return "work";
+  if (dHome <= CONFIG.PLACE_RADIUS_M) return "home";
+  return null;
+}
+
+function chooseDirection(now, param, pos) {
   const p = (param || "").trim().toLowerCase();
   let toWork;
-  if (["hin", "arbeit", "work"].includes(p)) toWork = true;
-  else if (["rueck", "rück", "zurueck", "zurück", "heim", "home"].includes(p)) toWork = false;
-  else toWork = now.getHours() < CONFIG.SWITCH_HOUR;
+  let reason;
+  const place = placeAt(pos);
+  if (["hin", "arbeit", "work"].includes(p)) {
+    toWork = true;
+    reason = "param";
+  } else if (["rueck", "rück", "zurueck", "zurück", "heim", "home"].includes(p)) {
+    toWork = false;
+    reason = "param";
+  } else if (place === "work") {
+    toWork = false; // an der Arbeit → nach Hause
+    reason = "location";
+  } else if (place === "home") {
+    toWork = true; // zu Hause → zur Arbeit
+    reason = "location";
+  } else {
+    toWork = now.getHours() < CONFIG.SWITCH_HOUR;
+    reason = "time";
+  }
 
   return toWork
-    ? { from: CONFIG.HOME, to: CONFIG.WORK, title: "Zur Arbeit", icon: "briefcase.fill" }
-    : { from: CONFIG.WORK, to: CONFIG.HOME, title: "Nach Hause", icon: "house.fill" };
+    ? { from: CONFIG.HOME, to: CONFIG.WORK, title: "Zur Arbeit", icon: "briefcase.fill", reason }
+    : { from: CONFIG.WORK, to: CONFIG.HOME, title: "Nach Hause", icon: "house.fill", reason };
 }
 
 // ------------------------ Haltestellen auflösen ------------------------
@@ -409,7 +477,7 @@ function addHeader(widget, dir, from, to, compact) {
   head.addSpacer(5);
   addText(head, dir.title, Font.boldSystemFont(13), COLORS.text);
   head.addSpacer();
-  addText(head, hhmm(new Date()), Font.systemFont(10), COLORS.sub);
+  addText(head, `${dir.reason === "location" ? "📍 " : ""}${hhmm(new Date())}`, Font.systemFont(10), COLORS.sub);
 
   if (!compact) {
     addText(widget, `${from.name} → ${to.name}`, Font.systemFont(10), COLORS.sub, { minScale: 0.6 });
@@ -483,7 +551,9 @@ function buildWidget({ dir, from, to, journeys, error, stale, family, now }) {
 async function run() {
   const now = new Date();
   const family = config.widgetFamily || "medium";
-  const dir = chooseDirection(now, args.widgetParameter);
+  const param = (args.widgetParameter || "").trim();
+  const pos = param ? null : await currentPosition(now);
+  const dir = chooseDirection(now, param, pos);
   const cacheKey = `trips-${dir.from}-${dir.to}`.replace(/[^\w-]/g, "_");
 
   let from, to, journeys, error, stale;

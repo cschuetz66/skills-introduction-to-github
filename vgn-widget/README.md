@@ -4,7 +4,7 @@ Ein Homescreen-Widget für iPhone/iPad, das dir die aktuellen VGN-Verbindungen f
 
 - **Vormittags** (bis 12 Uhr): Zuhause → Arbeit
 - **Nachmittags** (ab 12 Uhr): Arbeit → Zuhause
-- **Echtzeitdaten** aus der VGN-Fahrplanauskunft
+- **Echtzeitdaten** aus der Fahrplanauskunft „Bahnland Bayern“, die das gesamte VGN-Gebiet abdeckt
 - **Verspätungen** werden hervorgehoben: ab 2 min **orange**, ab 5 min **rot** (Zeile farbig hinterlegt)
 - **Ausfälle** erscheinen rot mit „✕ FÄLLT AUS“ und der betroffenen Linie
 - Zusammenfassung unten, z. B. „⚠︎ 1× Ausfall · 2× verspätet“
@@ -59,9 +59,13 @@ Fertig! Ein Tipp aufs Widget öffnet die VGN-Verbindungssuche.
 - **Angezeigte Zeiten:** Links steht die *planmäßige* Abfahrt des ersten Verkehrsmittels, daneben die Verspätung
   (`+3`). „in X min“ und die Ankunftszeit berücksichtigen bereits die Echtzeitdaten.
   `+0` in Grün bedeutet: Echtzeitdaten vorhanden, pünktlich.
-- **Haltestellen** werden beim ersten Lauf über die VGN-Suche aufgelöst und zwischengespeichert.
+- **Haltestellen** werden beim ersten Lauf über die Haltestellensuche aufgelöst und zwischengespeichert.
   Wenn du `HOME`/`WORK` änderst, wird automatisch neu gesucht.
-- Datenquelle ist die öffentliche EFA-Schnittstelle der VGN-Fahrplanauskunft (`efa.vgn.de`).
+- Datenquelle ist die öffentliche EFA-Schnittstelle von „Bahnland Bayern“ (`bahnland-bayern.de/efa/`).
+  Die frühere VGN-Schnittstelle `efa.vgn.de` ist nicht mehr erreichbar. Falls die Meldung
+  „Fahrplanauskunft nicht erreichbar“ erscheint, ist meist die Internetverbindung oder der Server gestört.
+- **Adressen** werden über ihre Koordinaten gesucht. Am zuverlässigsten sind Haltestellennamen
+  („Nürnberg, Plärrer“).
 
 ## Entwicklung / Test
 
@@ -70,4 +74,10 @@ nutzt Beispieldaten (`test/trip-fixture.json`) mit pünktlichen, verspäteten un
 
 ```bash
 TZ=Europe/Berlin node vgn-widget/test/run-test.js
+```
+
+Mit echten Daten (fragt die Fahrplanauskunft live ab und gibt den Widget-Inhalt als Text aus):
+
+```bash
+TZ=Europe/Berlin node vgn-widget/test/live-check.js hin large    # oder: rueck medium
 ```

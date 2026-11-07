@@ -9,7 +9,9 @@
  * und nachmittags von der Arbeit nach Hause – inkl. Echtzeitdaten.
  * Verspätungen werden orange/rot, Ausfälle rot hervorgehoben.
  *
- * Datenquelle: VGN-Fahrplanauskunft (EFA, https://efa.vgn.de)
+ * Datenquelle: Fahrplanauskunft „Bahnland Bayern“ (EFA, https://bahnland-bayern.de),
+ * die das gesamte VGN-Gebiet inkl. Echtzeitdaten abdeckt. (Die frühere
+ * Schnittstelle efa.vgn.de ist nicht mehr erreichbar.)
  *
  * Widget-Parameter (optional, lange auf das Widget tippen → „Widget bearbeiten“):
  *   hin    → immer Zuhause → Arbeit
@@ -38,7 +40,7 @@ const CONFIG = {
   // Wie oft iOS das Widget neu laden soll (Minuten; iOS entscheidet final).
   REFRESH_MIN: 5,
 
-  EFA_BASE: "https://efa.vgn.de/vgnExt_oeffi/",
+  EFA_BASE: "https://bahnland-bayern.de/efa/",
 };
 // =======================================================================
 
@@ -82,7 +84,20 @@ async function fetchJSON(endpoint, params) {
   const req = new Request(`${CONFIG.EFA_BASE}${endpoint}?${query(params)}`);
   req.timeoutInterval = 15;
   req.headers = { Accept: "application/json" };
-  return await req.loadJSON();
+  let json;
+  try {
+    json = await req.loadJSON();
+  } catch (e) {
+    throw new Error(`Fahrplanauskunft nicht erreichbar (${e && e.message ? e.message : e})`);
+  }
+  return json;
+}
+
+// Die EFA liefert z. B. „multiple matches“ als Fehler, obwohl Ergebnisse
+// dabei sind – Fehlermeldungen daher nur verwenden, wenn Daten fehlen.
+function efaErrorText(json) {
+  const err = (json.systemMessages || []).find((m) => m.type === "error");
+  return err ? ` (EFA ${err.code}${err.text ? `: ${err.text}` : ""})` : "";
 }
 
 // -------------------------- Richtung bestimmen -------------------------
@@ -135,7 +150,7 @@ function pickBestLocation(locations) {
 }
 
 async function resolveLocation(name) {
-  const cache = readCache("locations") || {};
+  const cache = readCache("locations-v2") || {};
   if (cache[name]) return cache[name];
 
   const json = await fetchJSON("XML_STOPFINDER_REQUEST", {
@@ -146,11 +161,16 @@ async function resolveLocation(name) {
     coordOutputFormat: "WGS84[dd.ddddd]",
   });
   const loc = pickBestLocation(json.locations);
-  if (!loc) throw new Error(`Ort nicht gefunden: „${name}“`);
+  if (!loc) throw new Error(`Ort nicht gefunden: „${name}“${efaErrorText(json)}`);
 
-  const result = { id: loc.id, name: loc.disassembledName || loc.name || name };
+  const result = {
+    id: loc.id,
+    type: loc.type,
+    coord: loc.coord, // [lat, lon]
+    name: loc.name || loc.disassembledName || name,
+  };
   cache[name] = result;
-  writeCache("locations", cache);
+  writeCache("locations-v2", cache);
   return result;
 }
 
@@ -238,14 +258,22 @@ function parseJourney(journey) {
   };
 }
 
+// Haltestellen per ID, alles andere (Adresse, POI) per Koordinate –
+// sonst meldet die EFA bei mehrdeutigen IDs „multiple matches“.
+function locationParams(loc, prefix) {
+  if (loc.type === "stop" || !Array.isArray(loc.coord)) {
+    return { [`type_${prefix}`]: "stop", [`name_${prefix}`]: loc.id };
+  }
+  const [lat, lon] = loc.coord;
+  return { [`type_${prefix}`]: "coord", [`name_${prefix}`]: `${lon}:${lat}:WGS84[dd.ddddd]` };
+}
+
 async function loadTrips(from, to, now) {
   const start = new Date(now.getTime() + CONFIG.OFFSET_MIN * 60000);
   const json = await fetchJSON("XML_TRIP_REQUEST2", {
     outputFormat: "rapidJSON",
-    type_origin: "any",
-    name_origin: from.id,
-    type_destination: "any",
-    name_destination: to.id,
+    ...locationParams(from, "origin"),
+    ...locationParams(to, "destination"),
     itdDate: efaDate(start),
     itdTime: efaTime(start),
     itdTripDateTimeDepArr: "dep",
@@ -254,6 +282,10 @@ async function loadTrips(from, to, now) {
     locationServerActive: 1,
     coordOutputFormat: "WGS84[dd.ddddd]",
   });
+  if (!Array.isArray(json.journeys)) {
+    const msg = efaErrorText(json);
+    if (msg) throw new Error(`Keine Verbindung berechnet${msg}`);
+  }
   const journeys = (json.journeys || []).map(parseJourney).filter(Boolean);
   // Bereits abgefahrene (tatsächliche Abfahrt in der Vergangenheit) ausblenden.
   return journeys

@@ -67,8 +67,8 @@ function makeGlobals({ hour, widgetParameter, family, failNetwork }) {
           const name = decodeURIComponent(this.url.match(/name_sf=([^&]*)/)[1]);
           return {
             locations: [
-              { id: "de:09564:9999", name: "Falscher Treffer", matchQuality: 10 },
-              { id: `id:${name}`, name, disassembledName: name.split(", ").pop(), isBest: true, matchQuality: 900 },
+              { id: "de:09564:9999", type: "stop", name: "Falscher Treffer", matchQuality: 10, coord: [49, 11] },
+              { id: `id:${name}`, type: "stop", name, disassembledName: name.split(", ").pop(), isBest: true, matchQuality: 900, coord: [49.45, 11.06] },
             ],
           };
         }
@@ -98,7 +98,8 @@ async function runScript(opts) {
   console.log("--- medium, 07:00 ---\n" + t.join(" | "));
   assert(t.includes("Zur Arbeit"), "Titel vormittags");
   const trip = env.requests.find((u) => u.includes("XML_TRIP_REQUEST2"));
-  assert(trip.includes("name_origin=id%3AN%C3%BCrnberg%2C%20Pl%C3%A4rrer"), "Start = HOME");
+  assert(trip.startsWith("https://bahnland-bayern.de/efa/"), "Endpunkt");
+  assert(trip.includes("type_origin=stop&name_origin=id%3AN%C3%BCrnberg%2C%20Pl%C3%A4rrer"), "Start = HOME");
   assert(trip.includes("itdTime=0700"), "Uhrzeit im Request");
 
   // Ausfall + Verspätung hervorgehoben

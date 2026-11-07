@@ -99,7 +99,7 @@ async function runScript(opts) {
   assert(t.includes("Zur Arbeit"), "Titel vormittags");
   const trip = env.requests.find((u) => u.includes("XML_TRIP_REQUEST2"));
   assert(trip.startsWith("https://bahnland-bayern.de/efa/"), "Endpunkt");
-  assert(trip.includes("type_origin=stop&name_origin=id%3AN%C3%BCrnberg%2C%20Pl%C3%A4rrer"), "Start = HOME");
+  assert(trip.includes("type_origin=stop&name_origin=id%3ASchwabach%2C%20Wildbirnenweg"), "Start = HOME");
   assert(trip.includes("itdTime=0700"), "Uhrzeit im Request");
 
   // Ausfall + Verspätung hervorgehoben
@@ -119,7 +119,7 @@ async function runScript(opts) {
   t = texts(env.getWidget());
   console.log("--- small, 16:00 ---\n" + t.join(" | "));
   assert(t.includes("Nach Hause"));
-  assert(env.requests.find((u) => u.includes("XML_TRIP_REQUEST2")).includes("name_origin=id%3AErlangen"));
+  assert(env.requests.find((u) => u.includes("XML_TRIP_REQUEST2")).includes("name_origin=id%3AN%C3%BCrnberg%2C%20Eibach"));
 
   // 3) Parameter erzwingt Richtung
   env = await runScript({ hour: 16, family: "large", widgetParameter: "hin" });

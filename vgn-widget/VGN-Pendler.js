@@ -22,8 +22,8 @@
 // ============================ KONFIGURATION ============================
 const CONFIG = {
   // Haltestelle oder Adresse – so, wie du sie in der VGN-App eingeben würdest.
-  HOME: "Nürnberg, Plärrer",
-  WORK: "Erlangen, Hauptbahnhof",
+  HOME: "Schwabach, Wildbirnenweg",
+  WORK: "Nürnberg, Eibach",
 
   // Bis zu dieser Stunde (exklusive) wird Zuhause → Arbeit angezeigt,
   // ab dieser Stunde Arbeit → Zuhause.
@@ -206,7 +206,9 @@ function minutesDiff(planned, estimated) {
 
 function lineLabel(leg) {
   const t = leg.transportation || {};
-  return t.disassembledName || t.number || (t.name || "").replace(/^(Bus|Tram|U-Bahn|S-Bahn)\s*/i, "") || "?";
+  const label = t.disassembledName || t.number || (t.name || "").replace(/^(Bus|Tram|U-Bahn|S-Bahn)\s*/i, "") || "?";
+  // Lange Namen (z. B. Rufbus „A666 Lotti Schwabach“) auf den ersten Teil kürzen.
+  return label.length > 8 && label.includes(" ") ? label.split(" ")[0] : label;
 }
 
 function parseJourney(journey) {

@@ -1,0 +1,268 @@
+{
+ "version": "10.5.17.3",
+ "journeys": [
+  {
+   "legs": [
+    {
+     "duration": 600,
+     "origin": {
+      "id": "x",
+      "name": "Nürnberg, Plärrer",
+      "disassembledName": "Plärrer",
+      "departureTimePlanned": "2026-11-09T05:50:00Z",
+      "properties": {
+       "platform": "2"
+      },
+      "departureTimeEstimated": "2026-11-09T05:50:00Z"
+     },
+     "destination": {
+      "id": "y",
+      "name": "Erlangen",
+      "disassembledName": "Erlangen",
+      "arrivalTimePlanned": "2026-11-09T06:10:00Z",
+      "arrivalTimeEstimated": "2026-11-09T06:10:00Z"
+     },
+     "transportation": {
+      "id": "t",
+      "name": "S-Bahn S1",
+      "disassembledName": "S1",
+      "number": "S1",
+      "product": {
+       "id": 1,
+       "class": 1,
+       "name": "x"
+      },
+      "destination": {
+       "name": "Erlangen Hbf"
+      }
+     },
+     "isRealtimeControlled": true,
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    }
+   ]
+  },
+  {
+   "legs": [
+    {
+     "duration": 600,
+     "origin": {
+      "id": "x",
+      "name": "Nürnberg, Plärrer",
+      "disassembledName": "Plärrer",
+      "departureTimePlanned": "2026-11-09T06:05:00Z",
+      "properties": {
+       "platform": "2"
+      },
+      "departureTimeEstimated": "2026-11-09T06:08:00Z"
+     },
+     "destination": {
+      "id": "y",
+      "name": "Erlangen",
+      "disassembledName": "Erlangen",
+      "arrivalTimePlanned": "2026-11-09T06:25:00Z",
+      "arrivalTimeEstimated": "2026-11-09T06:27:00Z"
+     },
+     "transportation": {
+      "id": "t",
+      "name": "S-Bahn S1",
+      "disassembledName": "S1",
+      "number": "S1",
+      "product": {
+       "id": 1,
+       "class": 1,
+       "name": "x"
+      },
+      "destination": {
+       "name": "Erlangen Hbf"
+      }
+     },
+     "isRealtimeControlled": true,
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    }
+   ]
+  },
+  {
+   "legs": [
+    {
+     "duration": 600,
+     "origin": {
+      "id": "x",
+      "name": "Nürnberg, Plärrer",
+      "disassembledName": "Plärrer",
+      "departureTimePlanned": "2026-11-09T06:12:00Z",
+      "properties": {
+       "platform": "2"
+      }
+     },
+     "destination": {
+      "id": "y",
+      "name": "Erlangen",
+      "disassembledName": "Erlangen",
+      "arrivalTimePlanned": "2026-11-09T06:40:00Z"
+     },
+     "transportation": {
+      "id": "t",
+      "name": "Bus 30",
+      "disassembledName": "30",
+      "number": "30",
+      "product": {
+       "id": 1,
+       "class": 5,
+       "name": "x"
+      },
+      "destination": {
+       "name": "Erlangen Hbf"
+      }
+     },
+     "isRealtimeControlled": true,
+     "realtimeStatus": [
+      "TRIP_CANCELLED"
+     ]
+    }
+   ]
+  },
+  {
+   "legs": [
+    {
+     "duration": 600,
+     "origin": {
+      "id": "x",
+      "name": "Nürnberg, Plärrer",
+      "disassembledName": "Plärrer",
+      "departureTimePlanned": "2026-11-09T06:20:00Z",
+      "properties": {
+       "platform": "2"
+      },
+      "departureTimeEstimated": "2026-11-09T06:27:00Z"
+     },
+     "destination": {
+      "id": "y",
+      "name": "Erlangen",
+      "disassembledName": "Erlangen",
+      "arrivalTimePlanned": "2026-11-09T06:40:00Z",
+      "arrivalTimeEstimated": "2026-11-09T06:47:00Z"
+     },
+     "transportation": {
+      "id": "t",
+      "name": "S-Bahn S1",
+      "disassembledName": "S1",
+      "number": "S1",
+      "product": {
+       "id": 1,
+       "class": 1,
+       "name": "x"
+      },
+      "destination": {
+       "name": "Erlangen Hbf"
+      }
+     },
+     "isRealtimeControlled": true,
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    }
+   ]
+  },
+  {
+   "legs": [
+    {
+     "duration": 300,
+     "origin": {
+      "name": "Plärrer",
+      "departureTimePlanned": "2026-11-09T06:30:00Z"
+     },
+     "destination": {
+      "name": "Plärrer U",
+      "arrivalTimePlanned": "2026-11-09T06:33:00Z"
+     },
+     "transportation": {
+      "product": {
+       "class": 100,
+       "name": "Fussweg"
+      }
+     }
+    },
+    {
+     "duration": 600,
+     "origin": {
+      "id": "x",
+      "name": "Nürnberg, Plärrer",
+      "disassembledName": "Plärrer",
+      "departureTimePlanned": "2026-11-09T06:35:00Z",
+      "properties": {
+       "platform": "2"
+      },
+      "departureTimeEstimated": "2026-11-09T06:35:00Z"
+     },
+     "destination": {
+      "id": "y",
+      "name": "Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "arrivalTimePlanned": "2026-11-09T06:38:00Z",
+      "arrivalTimeEstimated": "2026-11-09T06:38:00Z"
+     },
+     "transportation": {
+      "id": "t",
+      "name": "U-Bahn U1",
+      "disassembledName": "U1",
+      "number": "U1",
+      "product": {
+       "id": 1,
+       "class": 2,
+       "name": "x"
+      },
+      "destination": {
+       "name": "Langwasser Süd"
+      }
+     },
+     "isRealtimeControlled": true,
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    },
+    {
+     "duration": 600,
+     "origin": {
+      "id": "x",
+      "name": "Nürnberg, Hauptbahnhof",
+      "disassembledName": "Hauptbahnhof",
+      "departureTimePlanned": "2026-11-09T06:45:00Z",
+      "properties": {
+       "platform": "2"
+      },
+      "departureTimeEstimated": "2026-11-09T06:45:00Z"
+     },
+     "destination": {
+      "id": "y",
+      "name": "Erlangen",
+      "disassembledName": "Erlangen",
+      "arrivalTimePlanned": "2026-11-09T07:02:00Z",
+      "arrivalTimeEstimated": "2026-11-09T07:02:00Z"
+     },
+     "transportation": {
+      "id": "t",
+      "name": "R-Bahn RE 10",
+      "disassembledName": "10",
+      "number": "10",
+      "product": {
+       "id": 1,
+       "class": 0,
+       "name": "x"
+      },
+      "destination": {
+       "name": "Erlangen Hbf"
+      }
+     },
+     "isRealtimeControlled": true,
+     "realtimeStatus": [
+      "MONITORED"
+     ]
+    }
+   ]
+  }
+ ]
+}
